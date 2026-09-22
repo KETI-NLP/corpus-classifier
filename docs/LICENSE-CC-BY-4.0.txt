@@ -1,0 +1,19 @@
+Creative Commons Attribution 4.0 International (CC BY 4.0)
+
+Copyright (c) 2026 KETI-NLP.
+
+The original KETI-NLP adapter weights, trained classification head, taxonomy
+metadata and project documentation in this release are licensed under the
+Creative Commons Attribution 4.0 International License.
+
+This is a license notice. The full legal terms are available at:
+https://creativecommons.org/licenses/by/4.0/legalcode.en
+
+License summary: https://creativecommons.org/licenses/by/4.0/
+Attribution: KETI-NLP, Qwen3.5-2B-CorpusClassifier / Corpus Classifier, 2026.
+Identify your modifications and preserve attribution and the license link.
+
+This notice does not relicense the original Qwen3.5-2B base model files.
+Their Apache-2.0 license remains in model/base/LICENSE in the model repository.
+Python source code, tests and build configuration in the code repository are
+licensed separately under Apache-2.0; see that repository's LICENSE.

@@ -1,0 +1,11 @@
+{
+  "version": "0.1.0",
+  "model_repository": "KETI-NLP/Qwen3.5-2B-CorpusClassifier",
+  "model_commit": "6a574645df75672a27793a60cf3af00994a91845",
+  "model_tag": "v0.1.0",
+  "model_manifest_sha256": "d48e234e1061c98ee19b1dac67359e2ebfb6d5b11ae87d7b320f7b8dbd08ea2e",
+  "code_repository": "KETI-NLP/corpus-classifier",
+  "code_license": "Apache-2.0",
+  "model_contributions_license": "CC-BY-4.0",
+  "base_model_license": "Apache-2.0"
+}

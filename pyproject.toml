@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "raw-corpus-classifier"
+version = "0.1.0"
+description = "Offline, resumable multi-GPU document classification with a frozen Qwen3.5-2B classifier"
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE", "docs/LICENSE-CC-BY-4.0.txt"]
+requires-python = ">=3.11"
+dependencies = [
+  "torch==2.11.0", "transformers==5.11.0", "peft==0.19.0",
+  "safetensors==0.7.0", "tokenizers==0.22.2", "accelerate==1.12.0",
+]
+
+[project.optional-dependencies]
+hub = ["huggingface-hub==1.15.0"]
+data = ["pyarrow==23.0.0", "zstandard==0.25.0"]
+
+[project.scripts]
+corpus-classifier = "corpus_classifier.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

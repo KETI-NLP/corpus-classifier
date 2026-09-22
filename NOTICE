@@ -1,0 +1,7 @@
+Corpus Classifier
+Copyright 2026 KETI-NLP
+
+An independently trained document classifier based on Qwen3.5-2B.
+Source code: Apache-2.0 (LICENSE).
+Documentation: CC BY 4.0 (docs/LICENSE-CC-BY-4.0.txt).
+Model weights are distributed separately with component-specific licenses.

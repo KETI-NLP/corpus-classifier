@@ -1,0 +1,54 @@
+{
+  "status": "passed",
+  "unit_tests": 11,
+  "unit_tests_scope": "Synthetic CPU orchestration tests; no classification-quality metric",
+  "model_equivalence": {
+    "status": "passed",
+    "synthetic_documents": 3,
+    "max_abs_logit_difference": 0.0,
+    "shape": [
+      3,
+      2100
+    ],
+    "tokens_identical": true,
+    "decoded_labels_and_full_scores_identical": true,
+    "trained_head_exactly_restored": true,
+    "original_repository_access_blocked": true,
+    "network_access_blocked": true,
+    "physical_model_relocation": true,
+    "installed_wheel": true,
+    "gpu": "NVIDIA B200",
+    "torch": "2.11.0+cu130"
+  },
+  "multi_gpu_smoke": {
+    "resume": {
+      "status": "already_complete",
+      "skipped_rows": 96,
+      "model_forwards": 0
+    },
+    "completed_hashes_and_mtimes_unchanged": true,
+    "export": {
+      "status": "complete",
+      "counts": {
+        "documents": 96,
+        "exact_membership": 128,
+        "root_membership": 160,
+        "review_queue": 32
+      }
+    },
+    "status": "passed",
+    "synthetic_documents": 96,
+    "gpus": 2,
+    "shards": 4,
+    "all_document_ids_unique": true,
+    "parquet_references_valid": true,
+    "parquet_payload_hashes_valid": true,
+    "original_repository_access_blocked": true,
+    "network_access_blocked": true
+  },
+  "smoke_wall_seconds": 16.274996652267873,
+  "historical_100k_throughput_rebenchmarked": false,
+  "model_parameters_changed": false,
+  "external_corpus_transmissions": 0,
+  "paid_judge_calls": 0
+}
