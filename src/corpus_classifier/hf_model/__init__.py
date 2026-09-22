@@ -1,0 +1,2 @@
+from .configuration_corpus_classifier import CorpusClassifierConfig
+from .modeling_corpus_classifier import CorpusClassifierForSequenceClassification

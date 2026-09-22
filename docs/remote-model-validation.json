@@ -1,0 +1,14 @@
+{
+  "status": "passed",
+  "repository": "KETI-NLP/Qwen3.5-2B-CorpusClassifier",
+  "commit": "9310cfb804fc51782a7475def4bba5d9db817445",
+  "from_pretrained_repo_id": true,
+  "fresh_cache": true,
+  "auto_config": true,
+  "auto_tokenizer": true,
+  "auto_model_for_sequence_classification": true,
+  "synthetic_documents": 3,
+  "max_abs_logit_difference": 0.0,
+  "missing_weights": 0,
+  "decoded_labels_identical": true
+}

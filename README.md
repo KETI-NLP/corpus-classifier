@@ -38,20 +38,22 @@ corpus-classifier --help
 
 ## 2. 모델 받기
 
-아래 명령은 최초 공개 버전 `v0.1.0`의 **40자리 commit hash**에 고정되어 있습니다. 다른 버전을 쓸 때는 Hugging Face의 Files and versions에서 해당 commit을 확인하세요.
+아래 명령은 Transformers 호환 버전 `v0.2.0`의 **40자리 commit hash**에 고정되어 있습니다. 다른 버전을 쓸 때는 Hugging Face의 Files and versions에서 해당 commit을 확인하세요.
 
 ```bash
 corpus-classifier download \
   --repo-id KETI-NLP/Qwen3.5-2B-CorpusClassifier \
-  --revision 6a574645df75672a27793a60cf3af00994a91845 \
+  --revision 9310cfb804fc51782a7475def4bba5d9db817445 \
   --output models/corpus-classifier
 
 corpus-classifier verify --model models/corpus-classifier
 ```
 
-`main` 대신 고정 commit을 요구해 재현 가능한 실행을 만듭니다. 공개 저장소 다운로드에 쓰기 토큰은 필요하지 않습니다. 이미 모델 파일을 받았다면 다운로드를 생략합니다. 모델 전체는 약 4.62 GB이며 베이스와 병합하지 않은 LoRA·분류 헤드를 포함합니다.
+`main` 대신 고정 commit을 요구해 재현 가능한 실행을 만듭니다. 공개 저장소 다운로드에 쓰기 토큰은 필요하지 않습니다. 이미 모델 파일을 받았다면 다운로드를 생략합니다. 모델 전체는 약 4.6 GB이며 베이스와 병합하지 않은 LoRA·분류 헤드를 루트의 표준 sharded safetensors에 함께 저장합니다. 추가 베이스 모델 다운로드는 필요하지 않습니다.
 
-범용 `pipeline()`이나 텍스트 생성 서버에 모델 디렉터리를 넘기는 방법은 지원하지 않습니다. 이 패키지의 로더가 학습된 **2,100×2,048 분류 헤드**와 pooling을 복원합니다.
+v0.2.0 모델은 루트 `config.json`, tokenizer, safetensors와 등록된 custom Transformers 클래스를 제공합니다. `AutoModelForSequenceClassification.from_pretrained`로 직접 로딩할 수 있으며, 그 경로에서는 `trust_remote_code=True`가 필요합니다. 아래 GitHub CLI는 설치된 패키지의 클래스를 사용하고 다운로드한 Python 코드를 실행하지 않습니다. 모델에 포함된 코드와 설치 코드의 SHA256도 비교합니다.
+
+출력 2,100개에는 여러 종류의 head가 함께 있으므로 범용 `pipeline()`의 단일 softmax/sigmoid 결과를 최종 분야 라벨로 쓰면 안 됩니다. [Transformers 사용 예제](docs/transformers.md)의 `prepare_inputs` → forward → `decode_logits`를 사용하세요. 기존 v0.1.0 모델의 로딩도 유지하지만 새 모델은 코드 v0.2.0 이상이 필요합니다.
 
 ## 3. 입력 준비
 

@@ -63,22 +63,44 @@ def verify_files(root, registry):
 
 def code_digest():
     root = Path(__file__).parent
-    files = {p.name: digest(p) for p in sorted(root.glob("*.py"))}
+    files = {p.relative_to(root).as_posix(): digest(p) for p in sorted(root.rglob("*.py"))}
     return hashlib.sha256(json.dumps(files, sort_keys=True).encode()).hexdigest()
 
 
 def verify_model(model_dir):
     model_dir = Path(model_dir).resolve()
     manifest = load(model_dir / "MODEL_MANIFEST.json")
-    if manifest.get("format") != "corpus-classifier-model-v1":
+    if manifest.get("format") not in ("corpus-classifier-model-v1", "corpus-classifier-model-v2"):
         raise ValueError("Unsupported model package")
     verify_files(model_dir, manifest["files"])
-    required = {"classifier_config.json", "model/adapter/head_config.json",
-                "model/adapter/adapter_model.safetensors", "model/adapter/adapter_config.json",
-                "model/base/config.json", "model/adapter/tokenizer.json"}
+    if manifest["format"] == "corpus-classifier-model-v2":
+        required = {"classifier_config.json", "config.json", "head_config.json", "tokenizer.json", "tokenizer_config.json",
+                    "configuration_corpus_classifier.py", "modeling_corpus_classifier.py", "corpus_processing.py"}
+        weights = list(model_dir.glob("*.safetensors"))
+        if not weights:
+            raise ValueError("Missing Transformers model weights")
+        required.update(p.name for p in weights)
+        index = model_dir / "model.safetensors.index.json"
+        if index.exists():
+            weight_map = load(index).get("weight_map", {})
+            if not weight_map:
+                raise ValueError("Empty Transformers shard index")
+            required.add(index.name)
+            for name in set(weight_map.values()):
+                path = child(model_dir, name)
+                if not name.endswith(".safetensors") or not path.is_file():
+                    raise ValueError("Missing indexed model shard: " + name)
+                required.add(name)
+        elif not (model_dir / "model.safetensors").is_file():
+            raise ValueError("Missing Transformers shard index")
+        for path in model_dir.glob("*.py"):
+            required.add(path.name)
+    else:
+        required = {"classifier_config.json", "model/adapter/head_config.json",
+                    "model/adapter/adapter_model.safetensors", "model/adapter/adapter_config.json",
+                    "model/base/config.json", "model/adapter/tokenizer.json"}
     if not required <= manifest["files"].keys():
         raise ValueError("Model manifest is missing required payloads")
-    # Every model/tokenizer/taxonomy file must be covered, including weight indexes.
     for folder in ("model", "taxonomy"):
         for path in (model_dir / folder).rglob("*"):
             if path.is_file() and path.relative_to(model_dir).as_posix() not in manifest["files"]:

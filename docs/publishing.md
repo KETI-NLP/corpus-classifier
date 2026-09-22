@@ -27,7 +27,7 @@ GitHub CLI가 없는 서버는 [공식 설치 안내](https://github.com/cli/cli
 작업 트리 전체가 아니라 분리한 `github/`와 `huggingface/`만 각각 업로드합니다.
 
 - `github/`: 소스, 테스트, pyproject, README, 설명 문서, 합성 예제. 가중치·원문 데이터·비밀 파일 제외.
-- `huggingface/`: 전체 base+adapter, tokenizer, taxonomy, 모델 카드, 라이선스, 집계 평가, 파일 manifest. 학습 corpus·문서별 판정·내부 경로·Python 실행 코드 제외.
+- `huggingface/`: 루트 Transformers config·safetensors·tokenizer, custom model Python 3개, taxonomy, 모델 카드, 라이선스, 집계 평가, 파일 manifest. 학습 corpus·문서별 판정·내부 경로 제외.
 - 코드 Apache-2.0, 추가 가중치·문서 CC BY 4.0, 베이스 Apache-2.0 보존.
 
 검증 결과는 `github/docs/validation.json`에 있습니다. 로컬 staging에 원격 Git 저장소가 설정돼 있지 않다면 아래 최초 생성 명령을 사용합니다. 동일 이름의 기존 저장소가 있으면 그 내용을 먼저 확인하고 덮어쓰거나 force-push하지 마세요.
@@ -61,7 +61,7 @@ hf upload KETI-NLP/Qwen3.5-2B-CorpusClassifier ./huggingface . \
   --repo-type model --commit-message "Release frozen 2B corpus classifier"
 ```
 
-모델을 텍스트 생성 앱/Space로 만들 필요는 없습니다. `Model` 저장소에 파일을 업로드하고 README 상단 YAML에 분류 task와 base model을 표시합니다. 코드 로더가 필요한 구조이므로 자동 inference widget 동작을 주장하지 않습니다.
+모델을 텍스트 생성 앱/Space로 만들 필요는 없습니다. `Model` 저장소에 파일을 업로드하고 README 상단 YAML에 분류 task와 base model을 표시합니다. custom AutoClass 로딩을 지원하며 직접 사용 시 `trust_remote_code=True`가 필요합니다. joint head 전용 디코딩이 필요하므로 자동 inference widget 동작을 주장하지 않습니다.
 
 업로드한 뒤 Files and versions의 commit hash를 기록하고, 소비자는 `corpus-classifier download --revision <40자리 hash>`로 받도록 안내합니다. 공개 저장소 상태·원격 파일 목록을 확인하고 새 폴더로 다시 내려받아 `corpus-classifier verify`를 실행하세요. `MODEL_MANIFEST.json`은 runtime payload를 검증하며 README/라이선스 등 문서 편집으로 가중치 식별자가 바뀌지 않도록 문서를 제외합니다.
 
@@ -74,3 +74,9 @@ hf upload KETI-NLP/Qwen3.5-2B-CorpusClassifier ./huggingface . \
 - [모델 카드 메타데이터](https://huggingface.co/docs/hub/model-cards)
 
 이 절차 문서를 작성하거나 로컬 패키지를 검증하는 것만으로 원격 저장소가 생성·업로드되지는 않습니다. 실제 게시 후 원격 URL과 commit을 별도로 기록합니다.
+
+## v0.2.0 업데이트
+
+기존 공개 저장소의 main에 새 commit을 추가하고 `v0.2.0` 태그를 만듭니다. HF의 새 main에서는 중첩된 `model/base`, `model/adapter`를 루트 Transformers payload로 교체합니다. 기존 `v0.1.0` 태그와 commit은 보존하며 force-push하지 않습니다. 원격 HEAD를 확인하고 그 commit을 parent로 지정해 동시 변경을 덮어쓰지 않습니다.
+
+HF 게시 후 새 commit과 manifest SHA256을 `docs/release.json` 및 사용 예제에 기록한 GitHub 코드를 게시합니다. 게시본을 새 폴더로 다운로드하고 표준 AutoClass 로딩, GitHub 로더, 원본 합성 기준 출력 동일성을 검증합니다. 코드 release에는 wheel, source archive, SHA256SUMS를 첨부합니다.

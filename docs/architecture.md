@@ -2,9 +2,11 @@
 
 ## 모델 계약
 
-HF 모델 디렉터리는 `model/base`, `model/adapter`, `taxonomy`, `classifier_config.json`, `MODEL_MANIFEST.json`으로 구성합니다. 모델 저장소에 Python 원격 실행 코드를 두지 않습니다. GitHub 패키지가 base classifier 생성 → 2,100-output head 생성 → LoRA와 학습 head 복원 → 기존 last-token pooling 설치를 수행합니다.
+v0.2.0의 HF 모델 디렉터리 루트에는 `config.json`, `model-*.safetensors`, `model.safetensors.index.json`, tokenizer와 custom model Python 파일이 있습니다. `PretrainedConfig`/`PreTrainedModel`을 구현하고 `register_for_auto_class`로 `AutoConfig`와 `AutoModelForSequenceClassification`을 등록했습니다. 표준 `save_pretrained`로 전체 state dict를 저장했으며 로딩 중 외부 베이스 모델을 가져오지 않습니다.
 
-학습된 `score` 헤드를 복원하지 않은 base 또는 LoRA 단독 로딩은 이 분류기와 같지 않습니다. 어댑터의 tokenizer를 사용하며 base tokenizer로 대체하지 않습니다. 베이스·어댑터 가중치를 병합하거나 양자화하지 않았습니다.
+Hub에서 AutoClass를 직접 쓰면 `trust_remote_code=True`로 저장소의 모델 코드를 로딩합니다. GitHub 실행기는 설치된 동일 클래스와 `local_files_only=True`를 사용하며 Hub Python 파일은 실행하지 않습니다. 설치 코드와 모델에 동봉한 3개 Python 파일의 SHA256이 다르면 실행을 거절합니다. 이전 v0.1.0의 `model/base` + `model/adapter` 형식도 계속 읽을 수 있습니다.
+
+원본 베이스와 학습된 LoRA·score head를 병합하지 않고 보존합니다. 학습된 49개 FP32 텐서는 그대로 저장하며 CUDA BF16 추론에서 변환합니다. 기존 runner와 동일하게 rotary frequency를 포함한 부동소수점 버퍼도 BF16으로 맞춥니다. 비활성 PEFT `original_module` head만 재현 가능한 0으로 저장하며 추론에는 사용하지 않습니다. tokenizer, pooling, 임계값과 최종 디코딩은 기존과 같습니다.
 
 출력 순서는 root 33, exact 1,029, auxiliary primary 1,029, state 9입니다. state는 integrity 4, topic structure 3, labelability 2입니다. 상위 분야 점수 0.5 이상으로 gate한 뒤 세부 코드 0.95 이상을 선택하고 같은 계층의 조상/자손 중복을 제거합니다.
 

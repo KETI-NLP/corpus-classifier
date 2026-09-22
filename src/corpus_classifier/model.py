@@ -1,10 +1,10 @@
-"""Local-only loader for the unchanged base, LoRA and 2,100-output score head."""
+"""Local-only Transformers v2 loader with legacy v1 bundle compatibility."""
 import hashlib
 import json
 import os
 from pathlib import Path
 
-from .storage import load, verify_model
+from .storage import load, verify_model, digest
 from .contracts import document_text, clean_metadata
 
 
@@ -23,6 +23,26 @@ class Classifier:
         if not _verified:
             verify_model(self.directory)
         settings = load(self.directory / "classifier_config.json")
+        if settings.get("format") == "corpus-classifier-transformers-v2":
+            from .hf_model import CorpusClassifierConfig, CorpusClassifierForSequenceClassification
+            if (settings["max_length"], settings["pooling"], settings["root_threshold"], settings["exact_threshold"]) != (768, "last", .5, .95):
+                raise ValueError("Frozen inference configuration changed")
+            self.config = load(self.directory / "head_config.json")
+            implementation = Path(__file__).parent / "hf_model"
+            for name in ("configuration_corpus_classifier.py", "modeling_corpus_classifier.py", "corpus_processing.py"):
+                if digest(self.directory / name) != digest(implementation / name):
+                    raise ValueError("Model code differs from this installed release; install the matching classifier version")
+            self.device = torch.device(device)
+            if self.device.type != "cuda" or not torch.cuda.is_available():
+                raise RuntimeError("CUDA GPU required; this release uses bfloat16")
+            native_config = CorpusClassifierConfig.from_pretrained(self.directory, local_files_only=True)
+            self.tokenizer = AutoTokenizer.from_pretrained(self.directory, config=native_config, local_files_only=True, trust_remote_code=False)
+            self.model = CorpusClassifierForSequenceClassification.from_pretrained(
+                self.directory, config=native_config, local_files_only=True, dtype=torch.bfloat16)
+            if self.model.config.head_config != self.config:
+                raise ValueError("Model and sidecar label layouts differ")
+            self.model.to(device=self.device, dtype=torch.bfloat16).eval()
+            return
         expected = ("model/base", "model/adapter", "model/adapter/head_config.json", "last", 768, .5, .95)
         if tuple(settings.get(k) for k in ("base_model", "adapter", "head_config", "pooling", "max_length", "root_threshold", "exact_threshold")) != expected:
             raise ValueError("Frozen inference configuration changed")
