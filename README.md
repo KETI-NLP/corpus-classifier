@@ -1,6 +1,6 @@
 # Corpus Classifier
 
-학습된 **Qwen3.5-2B 기반 멀티라벨 분류기**로 대량 문서를 로컬 GPU에서 분류합니다. 하나의 입력을 한 번 인코딩해 33개 상위 분야, 1,029개 세부 코드와 문서 상태를 예측합니다.
+학습된 **Qwen3.5-2B 기반 멀티라벨 분류기**로 대량 문서를 로컬 GPU에서 분류합니다. 하나의 입력을 한 번 인코딩해 33개 상위 분야, 1,029개 분야·주제 코드와 문서 상태를 예측합니다.
 
 코드 저장소: `KETI-NLP/corpus-classifier`  
 모델 저장소: `KETI-NLP/Qwen3.5-2B-CorpusClassifier`
@@ -18,6 +18,31 @@
 - 모델 다운로드는 명시적 별도 명령입니다. 준비·분류·내보내기에서는 네트워크 연결을 차단합니다.
 
 이 저장소에는 모델 가중치, 학습 데이터, 원문 코퍼스, API 키가 없습니다. 모델은 Hugging Face 저장소에서 별도로 받습니다.
+
+## 라벨 이름·정의와 계층 확인
+
+**1,029개는 최하위 세부 라벨만 센 숫자가 아닙니다.** 상위 분야 코드 33개와 중간·하위 코드 996개를 합친 예측 대상 코드 집합입니다. `exact`는 head 이름이며 최하위 라벨이나 확정 정답이라는 의미가 아닙니다. 별도 root head 33개가 분야 gate로 사용됩니다. 하나의 문서는 여러 분야·주제에 연결될 수 있으며 디코더는 같은 계층의 조상·자손 중복을 제거합니다.
+
+- [Hugging Face 모델 카드의 분야별 전체 목록](https://huggingface.co/KETI-NLP/Qwen3.5-2B-CorpusClassifier): 33개 분야 요약표와 전체 1,029개 코드·이름.
+- [1,029개 라벨 상세 정의](https://huggingface.co/KETI-NLP/Qwen3.5-2B-CorpusClassifier/blob/6d225f29e1a21c67d9d9377f6a92bb1f0fc2b92e/docs/label-reference.md): 코드, 이름, 상위 코드, 분야, 경로, 정의, 포함/제외 기준, 출력 인덱스.
+- [검색·스프레드시트용 CSV](https://huggingface.co/KETI-NLP/Qwen3.5-2B-CorpusClassifier/resolve/6d225f29e1a21c67d9d9377f6a92bb1f0fc2b92e/docs/labels.csv?download=true): 원본 정의를 포함한 전체 코드 목록.
+
+다운로드한 모델의 `taxonomy/taxonomy_catalog.json`과 `taxonomy/label_order.json`이 원본 정의와 출력 순서입니다. 한국어 이름·정의가 원본에 없는 항목은 영어 원문을 유지했습니다. 이 정의는 분류 대상의 범위이며 코드별 정확도 보장은 아닙니다.
+
+```python
+import json
+from pathlib import Path
+
+catalog = json.loads(
+    (Path("models/corpus-classifier") / "taxonomy/taxonomy_catalog.json").read_text()
+)
+code = "SUB.DATA_AI.MACHINE_LEARNING"  # 또는 예측 results[0]["exact"]의 코드
+print(catalog[code]["label"])
+print(catalog[code]["parent"])
+print(catalog[code]["prompt_definition"])
+```
+
+라벨 설명 문서 추가는 가중치·taxonomy·임계값 변경이 아닙니다. 아래 다운로드 명령의 검증된 모델 commit은 그대로 사용합니다.
 
 ## 1. 설치
 
